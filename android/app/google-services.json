@@ -1,0 +1,90 @@
+{
+  "project_info": {
+    "project_number": "668621961630",
+    "project_id": "fixmate-79a41",
+    "storage_bucket": "fixmate-79a41.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:668621961630:android:a4a6a6b415e1e69e913e8f",
+        "android_client_info": {
+          "package_name": "com.example.fixmate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "668621961630-fa6btr0l4uhn7dcbtnrkhnflktlb6jut.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fixmate",
+            "certificate_hash": "8b1982db5e558d647fb4f4e82e0f44d6c9205280"
+          }
+        },
+        {
+          "client_id": "668621961630-3fics5pemi1q4ccbgg2idaunaa5ggat9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOSFUFqQv8Ti2_vtFOBB6Aq2726ISEH1U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "668621961630-3fics5pemi1q4ccbgg2idaunaa5ggat9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "668621961630-6j9gfhfbfq4230ln30ac48oom1gs6nku.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fixmate"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:668621961630:android:3bf5cec5eaf002dc913e8f",
+        "android_client_info": {
+          "package_name": "com.example.fixmatepartner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "668621961630-3fics5pemi1q4ccbgg2idaunaa5ggat9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOSFUFqQv8Ti2_vtFOBB6Aq2726ISEH1U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "668621961630-3fics5pemi1q4ccbgg2idaunaa5ggat9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "668621961630-6j9gfhfbfq4230ln30ac48oom1gs6nku.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fixmate"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
