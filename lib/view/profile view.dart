@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fixmatepartner/view/privacy%20rules.dart';
 import 'package:fixmatepartner/view/service%20and%20price%20view.dart';
+// import 'package:fixmatepartner/view/login_page.dart'; // Make sure to import your login screen file
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -105,34 +106,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        CupertinoIcons.star_fill,
-                                        color: Colors.amber,
-                                        size: 14,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        "4.9",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.blue[900],
-                                        ),
-                                      ),
-                                      const Text(
-                                        " (320 reviews)",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                               ],
                             ),
                           ],
@@ -227,29 +200,19 @@ class _ProfilePageState extends State<ProfilePage> {
                               Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        "4.9",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.blue[900],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 3),
-                                      const Icon(
-                                        CupertinoIcons.star_fill,
-                                        color: Colors.amber,
-                                        size: 14,
-                                      ),
-                                    ],
+                                  Text(
+                                    "Professional",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.blue[900],
+                                    ),
                                   ),
                                   const SizedBox(height: 3),
                                   Padding(
                                     padding: const EdgeInsets.only(right: 8.0),
                                     child: Text(
-                                      "Rating",
+                                      "Status",
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: Colors.grey[600],
@@ -291,7 +254,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         } else if (index == 1) {
                           Navigator.push(context, MaterialPageRoute(builder: (context) => const ServicesPricing()));
                         } else if (index == 2) {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) =>  Terms(mdFilename: 'terms.md')));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => Terms(mdFilename: 'terms.md')));
                         }
                       },
                       child: Container(

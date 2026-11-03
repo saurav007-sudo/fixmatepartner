@@ -17,6 +17,27 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
   final User? currentUser = FirebaseAuth.instance.currentUser;
   bool _isLoading = false;
 
+  // Helper method to fetch basePrice from partners collection
+  Future<String> _fetchPartnerBasePrice(String? partnerId, String fallbackPrice) async {
+    if (partnerId == null || partnerId.isEmpty) return fallbackPrice;
+    try {
+      // Check 'partners' collection first
+      var doc = await FirebaseFirestore.instance.collection('partners').doc(partnerId).get();
+      if (doc.exists && doc.data()?['basePrice'] != null) {
+        return doc.data()!['basePrice'].toString();
+      }
+
+      // Fallback check 'partner' collection (singular)
+      var docSingular = await FirebaseFirestore.instance.collection('partner').doc(partnerId).get();
+      if (docSingular.exists && docSingular.data()?['basePrice'] != null) {
+        return docSingular.data()!['basePrice'].toString();
+      }
+    } catch (e) {
+      debugPrint("Error fetching partner base price: $e");
+    }
+    return fallbackPrice;
+  }
+
   Future<void> _completeJob() async {
     setState(() {
       _isLoading = true;
@@ -203,9 +224,10 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
           String serviceName = jobData['serviceName'] ?? 'Service';
           String initialCustomerName = jobData['customerName'] ?? 'Customer';
           String? customerUserId = jobData['userId'] ?? jobData['customerId'];
+          String? partnerId = jobData['partnerId'] ?? currentUser?.uid;
           String location = jobData['location'] ?? 'No location provided';
           String time = jobData['time'] ?? 'Today';
-          String price = jobData['basePrice'] ?? jobData['price'] ?? '0';
+          String initialPrice = jobData['basePrice'] ?? jobData['price'] ?? '0';
           String description = jobData['description'] ?? 'No description provided';
           String initialPhone = jobData['phone'] ?? jobData['phoneNumber'] ?? jobData['phoneno'] ?? '';
 
@@ -308,20 +330,28 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
                                 ],
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE8F4FF),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                "₹$price",
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.blue,
-                                ),
-                              ),
+                            // Fetch and display basePrice from partners collection dynamically
+                            FutureBuilder<String>(
+                              future: _fetchPartnerBasePrice(partnerId, initialPrice),
+                              builder: (context, priceSnapshot) {
+                                String displayPrice = priceSnapshot.data ?? initialPrice;
+
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F4FF),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    "₹$displayPrice",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),

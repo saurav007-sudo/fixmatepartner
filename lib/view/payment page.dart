@@ -41,6 +41,27 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
     super.dispose();
   }
 
+  // Helper method to fetch basePrice from partners collection
+  Future<double> _fetchPartnerBasePrice(String? partnerId, double fallbackPrice) async {
+    if (partnerId == null || partnerId.isEmpty) return fallbackPrice;
+    try {
+      // Check 'partners' collection first
+      var doc = await FirebaseFirestore.instance.collection('partners').doc(partnerId).get();
+      if (doc.exists && doc.data()?['basePrice'] != null) {
+        return double.tryParse(doc.data()!['basePrice'].toString()) ?? fallbackPrice;
+      }
+
+      // Fallback check 'partner' collection (singular)
+      var docSingular = await FirebaseFirestore.instance.collection('partner').doc(partnerId).get();
+      if (docSingular.exists && docSingular.data()?['basePrice'] != null) {
+        return double.tryParse(docSingular.data()!['basePrice'].toString()) ?? fallbackPrice;
+      }
+    } catch (e) {
+      debugPrint("Error fetching partner base price: $e");
+    }
+    return fallbackPrice;
+  }
+
   void openRazorpayCheckout(double totalAmount) {
     var options = {
       "key": 'rzp_test_To44MxPJaLfMbr',
@@ -187,18 +208,9 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
 
           String serviceName = data['serviceName'] ?? 'Service';
           String technicianName = data['name'] ?? 'Technician';
+          String? partnerId = data['partnerId'] ?? data['technicianId'];
 
-          double basePrice = double.tryParse(data['basePrice']?.toString() ?? '299') ?? 299.0;
-          double serviceFee = basePrice * 0.05;
-          double platformFee = 25.0;
-          double totalAmount = basePrice + serviceFee + platformFee;
-
-          double technicianEarnings = totalAmount * 0.90;
-
-          razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse response) {
-            log(response.toString());
-            _completePaymentInFirestore('Razorpay', totalAmount, technicianEarnings);
-          });
+          double initialBasePrice = double.tryParse(data['basePrice']?.toString() ?? '299') ?? 299.0;
 
           Timestamp? startTimeTs = data['startTime'] as Timestamp?;
           Timestamp? stopTimeTs = data['stopTime'] as Timestamp? ?? data['updatedAt'] as Timestamp?;
@@ -206,198 +218,215 @@ class _PaymentSummaryPageState extends State<PaymentSummaryPage> {
           String startTime = _formatTimestamp(startTimeTs);
           String stopTime = _formatTimestamp(stopTimeTs);
 
-          return ListView(
-            padding: EdgeInsets.all(16),
-            children: [
-              Container(
+          return FutureBuilder<double>(
+            future: _fetchPartnerBasePrice(partnerId, initialBasePrice),
+            builder: (context, priceSnapshot) {
+              double basePrice = priceSnapshot.data ?? initialBasePrice;
+              double serviceFee = basePrice * 0.05;
+              double platformFee = 25.0;
+              double totalAmount = basePrice + serviceFee + platformFee;
+              double technicianEarnings = totalAmount * 0.90;
+
+              // Update razorpay success callback to use the dynamic total amount
+              razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (PaymentSuccessResponse response) {
+                log(response.toString());
+                _completePaymentInFirestore('Razorpay', totalAmount, technicianEarnings);
+              });
+
+              return ListView(
                 padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.15),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      serviceName,
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "Technician: $technicianName",
-                      style: TextStyle(fontSize: 15, color: Colors.blue, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 20),
-
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.15),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Service Time Log",
-                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
-                    ),
-                    Divider(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(CupertinoIcons.play_circle_fill, color: Colors.green, size: 20),
-                            SizedBox(width: 8),
-                            Text("Start Time:", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                          ],
-                        ),
-                        Text(startTime, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                      ],
-                    ),
-                    SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(CupertinoIcons.stop_circle_fill, color: Colors.red, size: 20),
-                            SizedBox(width: 8),
-                            Text("Stop Time:", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                          ],
-                        ),
-                        Text(stopTime, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 20),
-
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Price Details",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-                    ),
-                    SizedBox(height: 15),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Base Price", style: TextStyle(fontSize: 15)),
-                        Text("₹${basePrice.toStringAsFixed(0)}", style: TextStyle(fontSize: 15)),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Service Fee (5%)", style: TextStyle(fontSize: 15)),
-                        Text("₹${serviceFee.toStringAsFixed(0)}", style: TextStyle(fontSize: 15)),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Platform Fee", style: TextStyle(fontSize: 15)),
-                        Text("₹${platformFee.toStringAsFixed(0)}", style: TextStyle(fontSize: 15)),
-                      ],
-                    ),
-                    Divider(height: 25),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Total Payable", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                        Text("₹${totalAmount.toStringAsFixed(0)}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.blue)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 20),
-
-              Text(
-                "Select Payment Method",
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
-              ),
-              SizedBox(height: 10),
-              Column(
                 children: [
-                  RadioListTile<String>(
-                    value: 'Razorpay',
-                    groupValue: selectedPaymentMethod,
-                    onChanged: (value) => setState(() => selectedPaymentMethod = value!),
-                    title: Text("Razorpay", style: TextStyle(fontWeight: FontWeight.w800)),
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.15),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          serviceName,
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          "Technician: $technicianName",
+                          style: TextStyle(fontSize: 15, color: Colors.blue, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
                   ),
-                  RadioListTile<String>(
-                    value: 'Cash',
-                    groupValue: selectedPaymentMethod,
-                    onChanged: (value) => setState(() => selectedPaymentMethod = value!),
-                    title: Text("Cash", style: TextStyle(fontWeight: FontWeight.w800)),
-                  ),
-                ],
-              ),
 
-              SizedBox(height: 25),
+                  SizedBox(height: 20),
 
-              GestureDetector(
-                onTap: () {
-                  if (selectedPaymentMethod == 'Razorpay') {
-                    openRazorpayCheckout(totalAmount);
-                  } else {
-                    _completePaymentInFirestore('Cash', totalAmount, technicianEarnings);
-                  }
-                },
-                child: Container(
-                  height: 55,
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(16),
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.15),
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Service Time Log",
+                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+                        ),
+                        Divider(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(CupertinoIcons.play_circle_fill, color: Colors.green, size: 20),
+                                SizedBox(width: 8),
+                                Text("Start Time:", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                              ],
+                            ),
+                            Text(startTime, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(CupertinoIcons.stop_circle_fill, color: Colors.red, size: 20),
+                                SizedBox(width: 8),
+                                Text("Stop Time:", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                              ],
+                            ),
+                            Text(stopTime, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Center(
-                    child: Text(
-                      selectedPaymentMethod == 'Razorpay' ? "Pay with Razorpay" : "Confirm Cash Payment",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
+
+                  SizedBox(height: 20),
+
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Price Details",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                        ),
+                        SizedBox(height: 15),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Base Price", style: TextStyle(fontSize: 15)),
+                            Text("₹${basePrice.toStringAsFixed(0)}", style: TextStyle(fontSize: 15)),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Service Fee (5%)", style: TextStyle(fontSize: 15)),
+                            Text("₹${serviceFee.toStringAsFixed(0)}", style: TextStyle(fontSize: 15)),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Platform Fee", style: TextStyle(fontSize: 15)),
+                            Text("₹${platformFee.toStringAsFixed(0)}", style: TextStyle(fontSize: 15)),
+                          ],
+                        ),
+                        Divider(height: 25),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Total Payable", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                            Text("₹${totalAmount.toStringAsFixed(0)}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.blue)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 20),
+
+                  Text(
+                    "Select Payment Method",
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+                  ),
+                  SizedBox(height: 10),
+                  Column(
+                    children: [
+                      RadioListTile<String>(
+                        value: 'Razorpay',
+                        groupValue: selectedPaymentMethod,
+                        onChanged: (value) => setState(() => selectedPaymentMethod = value!),
+                        title: Text("Razorpay", style: TextStyle(fontWeight: FontWeight.w800)),
+                      ),
+                      RadioListTile<String>(
+                        value: 'Cash',
+                        groupValue: selectedPaymentMethod,
+                        onChanged: (value) => setState(() => selectedPaymentMethod = value!),
+                        title: Text("Cash", style: TextStyle(fontWeight: FontWeight.w800)),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 25),
+
+                  GestureDetector(
+                    onTap: () {
+                      if (selectedPaymentMethod == 'Razorpay') {
+                        openRazorpayCheckout(totalAmount);
+                      } else {
+                        _completePaymentInFirestore('Cash', totalAmount, technicianEarnings);
+                      }
+                    },
+                    child: Container(
+                      height: 55,
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Center(
+                        child: Text(
+                          selectedPaymentMethod == 'Razorpay' ? "Pay with Razorpay" : "Confirm Cash Payment",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           );
         },
       ),

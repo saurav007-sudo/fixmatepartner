@@ -20,24 +20,36 @@ class _ServicesPricingState extends State<ServicesPricing> {
     return Consumer<ServicesPricingViewModel>(
       builder: (context, servicesPricingViewModel, child) {
         return Scaffold(
-          backgroundColor: Color(0xFFEFF9FF),
+          backgroundColor: const Color(0xFFEFF9FF),
           body: StreamBuilder<DocumentSnapshot>(
             stream: servicesPricingViewModel.getPartnerProfileStream(),
             builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
               var data = snapshot.data?.data() as Map<String, dynamic>?;
               ServicesPricingModel model = ServicesPricingModel.fromMap(data);
+
+              // Extract work description from Partner collection (checking common field variations)
+              String workDescription = data?['workDescription'] ??
+                  data?['description'] ??
+                  data?['bio'] ??
+                  data?['about'] ??
+                  data?['partnerDescription'] ??
+                  model.serviceDescription; // Fallback to model's service description
 
               ImageProvider avatarImage;
               if (model.profileImageUrl != null && model.profileImageUrl!.isNotEmpty) {
                 avatarImage = NetworkImage(model.profileImageUrl!);
               } else {
-                avatarImage = AssetImage("lib/image/profile3.jpg");
+                avatarImage = const AssetImage("lib/image/profile3.jpg");
               }
 
               return ListView(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(top: 15, left: 15, right: 15),
+                    padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -49,14 +61,14 @@ class _ServicesPricingState extends State<ServicesPricing> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(17),
                             ),
-                            child: Icon(
+                            child: const Icon(
                               CupertinoIcons.arrow_left,
                               size: 18,
                               color: Colors.black,
                             ),
                           ),
                         ),
-                        Padding(
+                        const Padding(
                           padding: EdgeInsets.only(left: 15),
                           child: Text(
                             "Services & Pricing",
@@ -71,7 +83,7 @@ class _ServicesPricingState extends State<ServicesPricing> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       left: 13,
                       top: 18,
                     ),
@@ -86,7 +98,7 @@ class _ServicesPricingState extends State<ServicesPricing> {
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.only(
+                          padding: const EdgeInsets.only(
                             left: 18,
                           ),
                           child: Column(
@@ -94,18 +106,18 @@ class _ServicesPricingState extends State<ServicesPricing> {
                             children: [
                               Text(
                                 model.partnerName,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 25,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
                               Padding(
-                                padding: EdgeInsets.only(
+                                padding: const EdgeInsets.only(
                                     top: 4, right: 8
                                 ),
                                 child: Text(
                                   model.serviceName,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     color: Colors.grey,
                                   ),
@@ -117,7 +129,7 @@ class _ServicesPricingState extends State<ServicesPricing> {
                       ],
                     ),
                   ),
-                  Padding(
+                  const Padding(
                     padding: EdgeInsets.only(top: 15, left: 18, bottom: 8),
                     child: Text(
                       "My Services",
@@ -129,27 +141,26 @@ class _ServicesPricingState extends State<ServicesPricing> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
                     child: Container(
-                      height: 105,
                       width: 330,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Padding(
-                        padding: EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                Icon(CupertinoIcons.bolt, size: 16, color: Colors.blue),
+                                const Icon(CupertinoIcons.bolt, size: 16, color: Colors.blue),
                                 Padding(
-                                  padding: EdgeInsets.only(left: 8),
+                                  padding: const EdgeInsets.only(left: 8),
                                   child: Text(
                                     model.serviceName,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w900,
                                       color: Colors.black,
@@ -159,10 +170,11 @@ class _ServicesPricingState extends State<ServicesPricing> {
                               ],
                             ),
                             Padding(
-                              padding: EdgeInsets.only(top: 4),
+                              padding: const EdgeInsets.only(top: 6),
                               child: Text(
-                                model.serviceDescription,
-                                style: TextStyle(
+                                // Displays the work description fetched from Partner collection
+                                workDescription,
+                                style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.black54,
                                   fontWeight: FontWeight.w600,
@@ -170,35 +182,39 @@ class _ServicesPricingState extends State<ServicesPricing> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(top: 12),
+                              padding: const EdgeInsets.only(top: 12),
                               child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     "₹${model.basePrice} onwards",
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w900,
                                       color: Colors.black,
                                     ),
                                   ),
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 170),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => EditService(
+                                            initialServiceName: model.serviceName,
+                                            initialDescription: workDescription,
+                                            initialBasePrice: model.basePrice,
+                                          ),
+                                        ),
+                                      );
+                                    },
                                     child: Row(
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(builder: (context) => EditService()),
-                                            );
-                                          },
-                                          child: Text(
-                                            "Edit",
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w800,
-                                              color: Colors.blue,
-                                            ),
+                                      children: const [
+                                        Text(
+                                          "Edit",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.blue,
                                           ),
                                         ),
                                         Padding(

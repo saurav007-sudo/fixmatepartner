@@ -18,7 +18,7 @@ class EditProfileViewModel extends ChangeNotifier {
   String? profileImageUrl;
   bool isLoading = false;
 
-  Future<void> loadUserData() async {
+  Future<void> loadUserData({String? name, String? email, String? phone}) async {
     String uid = currentUser?.uid ?? 'sample_partner';
     EditProfileModel? profile = await _repository.getUserProfile(uid);
     if (profile != null) {

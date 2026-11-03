@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fixmatepartner/view/editpersonal view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/personal info model.dart';
-import '../view/editpersonal view.dart';
 import '../viewmodel/personal info viewmodel.dart';
 
 class Personal extends StatefulWidget {
@@ -14,12 +15,14 @@ class Personal extends StatefulWidget {
 }
 
 class _PersonalState extends State<Personal> {
+  final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
   @override
   Widget build(BuildContext context) {
     return Consumer<PersonalInfoViewModel>(
       builder: (context, personalViewModel, child) {
         return Scaffold(
-          backgroundColor: Color(0xFFEFF9FF),
+          backgroundColor: const Color(0xFFEFF9FF),
           body: SafeArea(
             child: StreamBuilder<DocumentSnapshot>(
               stream: personalViewModel.getPartnerProfileStream(),
@@ -31,13 +34,13 @@ class _PersonalState extends State<Personal> {
                 if (personal.profileImageUrl != null && personal.profileImageUrl!.isNotEmpty) {
                   avatarImage = NetworkImage(personal.profileImageUrl!);
                 } else {
-                  avatarImage = AssetImage("lib/asset/44-extractpics.jpg");
+                  avatarImage = const AssetImage("lib/asset/44-extractpics.jpg");
                 }
 
                 return ListView(
                   children: [
                     Padding(
-                      padding: EdgeInsets.only(
+                      padding: const EdgeInsets.only(
                         left: 15,
                         right: 15,
                         top: 10,
@@ -54,7 +57,7 @@ class _PersonalState extends State<Personal> {
                               color: Colors.blue[900],
                             ),
                           ),
-                          Padding(
+                          const Padding(
                             padding: EdgeInsets.only(
                               left: 22,
                             ),
@@ -67,23 +70,27 @@ class _PersonalState extends State<Personal> {
                               ),
                             ),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Padding(
-                            padding: EdgeInsets.only(
+                            padding: const EdgeInsets.only(
                               left: 13,
                             ),
                             child: GestureDetector(
                               onTap: () {
+                                // Pass current values to the Edit page (phone omitted)
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => Edit(),
+                                    builder: (context) => Edit(
+                                      initialName: personal.name,
+                                      initialEmail: personal.email,
+                                    ),
                                   ),
                                 );
                               },
                               child: CircleAvatar(
                                 radius: 23,
-                                backgroundColor: Color(0xFFDCEEFF),
+                                backgroundColor: const Color(0xFFDCEEFF),
                                 child: Icon(
                                   CupertinoIcons.pencil,
                                   color: Colors.blue[800],
@@ -96,7 +103,7 @@ class _PersonalState extends State<Personal> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(
+                      padding: const EdgeInsets.only(
                         left: 13,
                         top: 18,
                       ),
@@ -111,7 +118,7 @@ class _PersonalState extends State<Personal> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(
+                            padding: const EdgeInsets.only(
                               left: 18,
                             ),
                             child: Column(
@@ -119,19 +126,19 @@ class _PersonalState extends State<Personal> {
                               children: [
                                 Text(
                                   personal.name,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 25,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.only(
+                                  padding: const EdgeInsets.only(
                                     top: 4,
                                     right: 8,
                                   ),
                                   child: Text(
                                     personal.category,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       color: Colors.grey,
                                     ),
@@ -144,13 +151,13 @@ class _PersonalState extends State<Personal> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(
+                      padding: const EdgeInsets.only(
                         left: 18,
                         right: 18,
                         top: 20,
                       ),
                       child: Container(
-                        height: 365,
+                        height: 200, // Adjusted height for Name and Email only
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
@@ -158,14 +165,14 @@ class _PersonalState extends State<Personal> {
                             BoxShadow(
                               color: Colors.grey.withOpacity(0.15),
                               blurRadius: 8,
-                              offset: Offset(0, 3),
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
                         child: Column(
                           children: [
                             Padding(
-                              padding: EdgeInsets.only(
+                              padding: const EdgeInsets.only(
                                 left: 15,
                                 right: 15,
                                 top: 15,
@@ -174,7 +181,7 @@ class _PersonalState extends State<Personal> {
                                 children: [
                                   CircleAvatar(
                                     radius: 27,
-                                    backgroundColor: Color(0xFFE7F3FF),
+                                    backgroundColor: const Color(0xFFE7F3FF),
                                     child: Icon(
                                       CupertinoIcons.person,
                                       color: Colors.blue[800],
@@ -182,25 +189,25 @@ class _PersonalState extends State<Personal> {
                                     ),
                                   ),
                                   Padding(
-                                    padding: EdgeInsets.only(
+                                    padding: const EdgeInsets.only(
                                       left: 12,
                                     ),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
+                                        const Text(
                                           "Full name",
                                           style: TextStyle(
                                             fontSize: 14,
                                           ),
                                         ),
                                         Padding(
-                                          padding: EdgeInsets.only(
+                                          padding: const EdgeInsets.only(
                                             top: 3,
                                           ),
                                           child: Text(
                                             personal.name,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 17,
                                               fontWeight: FontWeight.w700,
                                             ),
@@ -213,7 +220,7 @@ class _PersonalState extends State<Personal> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(
+                              padding: const EdgeInsets.only(
                                 left: 80,
                                 right: 15,
                                 top: 7,
@@ -224,7 +231,7 @@ class _PersonalState extends State<Personal> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(
+                              padding: const EdgeInsets.only(
                                 left: 15,
                                 right: 15,
                                 top: 9,
@@ -233,7 +240,7 @@ class _PersonalState extends State<Personal> {
                                 children: [
                                   CircleAvatar(
                                     radius: 27,
-                                    backgroundColor: Color(0xFFE7F3FF),
+                                    backgroundColor: const Color(0xFFE7F3FF),
                                     child: Icon(
                                       CupertinoIcons.mail,
                                       color: Colors.blue[800],
@@ -241,143 +248,25 @@ class _PersonalState extends State<Personal> {
                                     ),
                                   ),
                                   Padding(
-                                    padding: EdgeInsets.only(
+                                    padding: const EdgeInsets.only(
                                       left: 12,
                                     ),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(
+                                        const Text(
                                           "Email address",
                                           style: TextStyle(
                                             fontSize: 14,
                                           ),
                                         ),
                                         Padding(
-                                          padding: EdgeInsets.only(
+                                          padding: const EdgeInsets.only(
                                             top: 3,
                                           ),
                                           child: Text(
                                             personal.email,
-                                            style: TextStyle(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                left: 80,
-                                right: 15,
-                                top: 7,
-                              ),
-                              child: Container(
-                                height: 1,
-                                color: Colors.grey[300],
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                left: 15,
-                                right: 15,
-                                top: 9,
-                              ),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 27,
-                                    backgroundColor: Color(0xFFE7F3FF),
-                                    child: Icon(
-                                      CupertinoIcons.phone,
-                                      color: Colors.blue[800],
-                                      size: 25,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 12,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Phone number",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            top: 3,
-                                          ),
-                                          child: Text(
-                                            personal.phone,
-                                            style: TextStyle(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                left: 80,
-                                right: 15,
-                                top: 7,
-                              ),
-                              child: Container(
-                                height: 1,
-                                color: Colors.grey[300],
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.only(
-                                left: 15,
-                                right: 15,
-                                top: 9,
-                              ),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 27,
-                                    backgroundColor: Color(0xFFE7F3FF),
-                                    child: Icon(
-                                      CupertinoIcons.calendar,
-                                      color: Colors.blue[800],
-                                      size: 25,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 12,
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Date of Birth",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                            top: 3,
-                                          ),
-                                          child: Text(
-                                            personal.dob,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 17,
                                               fontWeight: FontWeight.w700,
                                             ),
@@ -394,7 +283,7 @@ class _PersonalState extends State<Personal> {
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(
+                      padding: const EdgeInsets.only(
                         left: 18,
                         right: 18,
                         top: 18,
@@ -409,14 +298,14 @@ class _PersonalState extends State<Personal> {
                             BoxShadow(
                               color: Colors.grey.withOpacity(0.15),
                               blurRadius: 8,
-                              offset: Offset(0, 3),
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Padding(
+                            const Padding(
                               padding: EdgeInsets.only(
                                 left: 20,
                                 top: 17,
@@ -430,7 +319,7 @@ class _PersonalState extends State<Personal> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(
+                              padding: const EdgeInsets.only(
                                 left: 20,
                                 top: 15,
                               ),
@@ -438,14 +327,14 @@ class _PersonalState extends State<Personal> {
                                 children: [
                                   CircleAvatar(
                                     radius: 17,
-                                    backgroundColor: Color(0xFFF0F0F0),
+                                    backgroundColor: const Color(0xFFF0F0F0),
                                     child: Icon(
                                       CupertinoIcons.calendar,
                                       size: 17,
                                       color: Colors.grey[700],
                                     ),
                                   ),
-                                  Padding(
+                                  const Padding(
                                     padding: EdgeInsets.only(
                                       left: 10,
                                     ),
@@ -456,7 +345,7 @@ class _PersonalState extends State<Personal> {
                                       ),
                                     ),
                                   ),
-                                  Text(
+                                  const Text(
                                     "2026",
                                     style: TextStyle(
                                       fontSize: 16,
@@ -467,13 +356,13 @@ class _PersonalState extends State<Personal> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(
+                              padding: const EdgeInsets.only(
                                 left: 20,
                                 top: 12,
                               ),
                               child: Row(
                                 children: [
-                                  CircleAvatar(
+                                  const CircleAvatar(
                                     radius: 17,
                                     backgroundColor: Color(0xFFDDF7E8),
                                     child: Icon(
@@ -482,7 +371,7 @@ class _PersonalState extends State<Personal> {
                                       color: Colors.green,
                                     ),
                                   ),
-                                  Padding(
+                                  const Padding(
                                     padding: EdgeInsets.only(
                                       left: 10,
                                     ),
@@ -493,7 +382,7 @@ class _PersonalState extends State<Personal> {
                                       ),
                                     ),
                                   ),
-                                  Text(
+                                  const Text(
                                     "Verified",
                                     style: TextStyle(
                                       fontSize: 16,

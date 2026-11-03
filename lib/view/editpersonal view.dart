@@ -7,7 +7,14 @@ import 'package:provider/provider.dart';
 import '../viewmodel/editpersonal viewmodel.dart';
 
 class Edit extends StatefulWidget {
-  const Edit({super.key});
+  final String? initialName;
+  final String? initialEmail;
+
+  const Edit({
+    super.key,
+    this.initialName,
+    this.initialEmail,
+  });
 
   @override
   State<Edit> createState() => _EditState();
@@ -18,7 +25,10 @@ class _EditState extends State<Edit> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<EditProfileViewModel>(context, listen: false).loadUserData();
+      Provider.of<EditProfileViewModel>(context, listen: false).loadUserData(
+        name: widget.initialName,
+        email: widget.initialEmail,
+      );
     });
   }
 
@@ -27,7 +37,7 @@ class _EditState extends State<Edit> {
     return Consumer<EditProfileViewModel>(
       builder: (context, editProvider, child) {
         return Scaffold(
-          backgroundColor: Color(0xFFEFF9FF),
+          backgroundColor: const Color(0xFFEFF9FF),
           body: SizedBox(
             height: 800,
             width: 360,
@@ -35,7 +45,7 @@ class _EditState extends State<Edit> {
               child: ListView(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       left: 15,
                       right: 15,
                       top: 10,
@@ -52,7 +62,7 @@ class _EditState extends State<Edit> {
                             color: Colors.blue[900],
                           ),
                         ),
-                        Padding(
+                        const Padding(
                           padding: EdgeInsets.only(
                             left: 22,
                           ),
@@ -69,7 +79,7 @@ class _EditState extends State<Edit> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       left: 13,
                       top: 18,
                     ),
@@ -88,7 +98,7 @@ class _EditState extends State<Edit> {
                                     : FileImage(File(editProvider.selectedImageFile!.path)) as ImageProvider)
                                     : (editProvider.profileImageUrl != null && editProvider.profileImageUrl!.isNotEmpty
                                     ? NetworkImage(editProvider.profileImageUrl!) as ImageProvider
-                                    : AssetImage("lib/asset/44-extractpics.jpg") as ImageProvider),
+                                    : const AssetImage("lib/asset/44-extractpics.jpg") as ImageProvider),
                               ),
                             ),
                             Positioned(
@@ -99,7 +109,7 @@ class _EditState extends State<Edit> {
                                 child: CircleAvatar(
                                   radius: 16,
                                   backgroundColor: Colors.blue[800],
-                                  child: Icon(
+                                  child: const Icon(
                                     CupertinoIcons.camera_fill,
                                     size: 14,
                                     color: Colors.white,
@@ -110,7 +120,7 @@ class _EditState extends State<Edit> {
                           ],
                         ),
                         Padding(
-                          padding: EdgeInsets.only(
+                          padding: const EdgeInsets.only(
                             left: 18,
                           ),
                           child: Column(
@@ -120,12 +130,12 @@ class _EditState extends State<Edit> {
                                 editProvider.nameController.text.isEmpty
                                     ? "Suresh Babu"
                                     : editProvider.nameController.text,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 25,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              Padding(
+                              const Padding(
                                 padding: EdgeInsets.only(top: 4, right: 8),
                                 child: Text(
                                   "Electrician",
@@ -142,13 +152,13 @@ class _EditState extends State<Edit> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       left: 18,
                       right: 18,
                       top: 20,
                     ),
                     child: Container(
-                      height: 365,
+                      height: 200, // Adjusted height for Name and Email fields only
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
@@ -156,14 +166,14 @@ class _EditState extends State<Edit> {
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.15),
                             blurRadius: 8,
-                            offset: Offset(0, 3),
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
                       child: Column(
                         children: [
                           Padding(
-                            padding: EdgeInsets.only(
+                            padding: const EdgeInsets.only(
                               left: 15,
                               right: 15,
                               top: 15,
@@ -172,7 +182,7 @@ class _EditState extends State<Edit> {
                               children: [
                                 CircleAvatar(
                                   radius: 27,
-                                  backgroundColor: Color(0xFFE7F3FF),
+                                  backgroundColor: const Color(0xFFE7F3FF),
                                   child: Icon(
                                     CupertinoIcons.person,
                                     color: Colors.blue[800],
@@ -180,20 +190,20 @@ class _EditState extends State<Edit> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.only(
+                                  padding: const EdgeInsets.only(
                                     left: 12,
                                   ),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
+                                      const Text(
                                         "Full name",
                                         style: TextStyle(
                                           fontSize: 14,
                                         ),
                                       ),
                                       Padding(
-                                        padding: EdgeInsets.only(
+                                        padding: const EdgeInsets.only(
                                           top: 3,
                                         ),
                                         child: SizedBox(
@@ -201,11 +211,11 @@ class _EditState extends State<Edit> {
                                           child: TextField(
                                             controller: editProvider.nameController,
                                             onChanged: (val) => setState(() {}),
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 17,
                                               fontWeight: FontWeight.w700,
                                             ),
-                                            decoration: InputDecoration(
+                                            decoration: const InputDecoration(
                                               border: InputBorder.none,
                                               isDense: true,
                                               contentPadding: EdgeInsets.zero,
@@ -220,7 +230,7 @@ class _EditState extends State<Edit> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(
+                            padding: const EdgeInsets.only(
                               left: 80,
                               right: 15,
                               top: 7,
@@ -231,7 +241,7 @@ class _EditState extends State<Edit> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(
+                            padding: const EdgeInsets.only(
                               left: 15,
                               right: 15,
                               top: 9,
@@ -240,7 +250,7 @@ class _EditState extends State<Edit> {
                               children: [
                                 CircleAvatar(
                                   radius: 27,
-                                  backgroundColor: Color(0xFFE7F3FF),
+                                  backgroundColor: const Color(0xFFE7F3FF),
                                   child: Icon(
                                     CupertinoIcons.mail,
                                     color: Colors.blue[800],
@@ -248,165 +258,31 @@ class _EditState extends State<Edit> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.only(
+                                  padding: const EdgeInsets.only(
                                     left: 12,
                                   ),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
+                                      const Text(
                                         "Email address",
                                         style: TextStyle(
                                           fontSize: 14,
                                         ),
                                       ),
                                       Padding(
-                                        padding: EdgeInsets.only(
+                                        padding: const EdgeInsets.only(
                                           top: 3,
                                         ),
                                         child: SizedBox(
                                           width: 220,
                                           child: TextField(
                                             controller: editProvider.mailController,
-                                            style: TextStyle(
+                                            style: const TextStyle(
                                               fontSize: 17,
                                               fontWeight: FontWeight.w700,
                                             ),
-                                            decoration: InputDecoration(
-                                              border: InputBorder.none,
-                                              isDense: true,
-                                              contentPadding: EdgeInsets.zero,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              left: 80,
-                              right: 15,
-                              top: 7,
-                            ),
-                            child: Container(
-                              height: 1,
-                              color: Colors.grey[300],
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              left: 15,
-                              right: 15,
-                              top: 9,
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 27,
-                                  backgroundColor: Color(0xFFE7F3FF),
-                                  child: Icon(
-                                    CupertinoIcons.phone,
-                                    color: Colors.blue[800],
-                                    size: 25,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    left: 12,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Phone number",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(
-                                          top: 3,
-                                        ),
-                                        child: SizedBox(
-                                          width: 220,
-                                          child: TextField(
-                                            controller: editProvider.phoneController,
-                                            style: TextStyle(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                            decoration: InputDecoration(
-                                              border: InputBorder.none,
-                                              isDense: true,
-                                              contentPadding: EdgeInsets.zero,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              left: 80,
-                              right: 15,
-                              top: 7,
-                            ),
-                            child: Container(
-                              height: 1,
-                              color: Colors.grey[300],
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                              left: 15,
-                              right: 15,
-                              top: 9,
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 27,
-                                  backgroundColor: Color(0xFFE7F3FF),
-                                  child: Icon(
-                                    CupertinoIcons.calendar,
-                                    color: Colors.blue[800],
-                                    size: 25,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    left: 12,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Date of Birth",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.only(
-                                          top: 3,
-                                        ),
-                                        child: SizedBox(
-                                          width: 220,
-                                          child: TextField(
-                                            controller: editProvider.dobController,
-                                            style: TextStyle(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                            decoration: InputDecoration(
+                                            decoration: const InputDecoration(
                                               border: InputBorder.none,
                                               isDense: true,
                                               contentPadding: EdgeInsets.zero,
@@ -425,7 +301,7 @@ class _EditState extends State<Edit> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       left: 18,
                       right: 18,
                       top: 18,
@@ -439,14 +315,14 @@ class _EditState extends State<Edit> {
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.15),
                             blurRadius: 8,
-                            offset: Offset(0, 3),
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
+                          const Padding(
                             padding: EdgeInsets.only(
                               left: 20,
                               top: 17,
@@ -460,7 +336,7 @@ class _EditState extends State<Edit> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(
+                            padding: const EdgeInsets.only(
                               left: 20,
                               top: 15,
                             ),
@@ -468,14 +344,14 @@ class _EditState extends State<Edit> {
                               children: [
                                 CircleAvatar(
                                   radius: 17,
-                                  backgroundColor: Color(0xFFF0F0F0),
+                                  backgroundColor: const Color(0xFFF0F0F0),
                                   child: Icon(
                                     CupertinoIcons.calendar,
                                     size: 17,
                                     color: Colors.grey[700],
                                   ),
                                 ),
-                                Padding(
+                                const Padding(
                                   padding: EdgeInsets.only(
                                     left: 10,
                                   ),
@@ -486,7 +362,7 @@ class _EditState extends State<Edit> {
                                     ),
                                   ),
                                 ),
-                                Text(
+                                const Text(
                                   "2026",
                                   style: TextStyle(
                                     fontSize: 16,
@@ -497,13 +373,13 @@ class _EditState extends State<Edit> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(
+                            padding: const EdgeInsets.only(
                               left: 20,
                               top: 12,
                             ),
                             child: Row(
                               children: [
-                                CircleAvatar(
+                                const CircleAvatar(
                                   radius: 17,
                                   backgroundColor: Color(0xFFDDF7E8),
                                   child: Icon(
@@ -512,7 +388,7 @@ class _EditState extends State<Edit> {
                                     color: Colors.green,
                                   ),
                                 ),
-                                Padding(
+                                const Padding(
                                   padding: EdgeInsets.only(
                                     left: 10,
                                   ),
@@ -523,7 +399,7 @@ class _EditState extends State<Edit> {
                                     ),
                                   ),
                                 ),
-                                Text(
+                                const Text(
                                   "Verified",
                                   style: TextStyle(
                                     fontSize: 16,
@@ -538,7 +414,7 @@ class _EditState extends State<Edit> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       left: 18,
                       right: 18,
                       top: 18,
@@ -552,7 +428,7 @@ class _EditState extends State<Edit> {
                         if (!context.mounted) return;
                         if (success) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text("Profile updated successfully!"),
                               backgroundColor: Colors.green,
                             ),
@@ -560,7 +436,7 @@ class _EditState extends State<Edit> {
                           Navigator.pop(context);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text("Error updating profile"),
                               backgroundColor: Colors.red,
                             ),
@@ -575,8 +451,8 @@ class _EditState extends State<Edit> {
                         ),
                         child: Center(
                           child: editProvider.isLoading
-                              ? CircularProgressIndicator(color: Colors.white)
-                              : Text(
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : const Text(
                             "Save Changes",
                             style: TextStyle(
                               fontSize: 18,
