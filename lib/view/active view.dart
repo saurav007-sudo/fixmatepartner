@@ -25,10 +25,10 @@ class _ActiveState extends State<Active> {
             stream: activeViewModel.getActiveJobsStream(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               }
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return Center(
+                return const Center(
                   child: Text(
                     "No active jobs found",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey),
@@ -39,19 +39,21 @@ class _ActiveState extends State<Active> {
               var jobDocs = snapshot.data!.docs;
 
               return ListView.builder(
-                padding: EdgeInsets.only(top: 8, bottom: 20),
+                padding: const EdgeInsets.only(top: 8, bottom: 20),
                 itemCount: jobDocs.length,
                 itemBuilder: (context, index) {
                   var jobData = jobDocs[index].data() as Map<String, dynamic>;
                   String jobId = jobDocs[index].id;
 
                   String? customerUserId = jobData['userId'] ?? jobData['customerId'];
+                  String? partnerId = jobData['partnerId'];
                   String initialCustomerName = jobData['customerName'] ?? 'Customer';
+                  String initialPrice = jobData['basePrice']?.toString() ?? jobData['price']?.toString() ?? '0';
 
                   String? initialProfileImage = jobData['profileImage'] ?? jobData['image'] ?? jobData['imageUrl'];
 
                   return Padding(
-                    padding: EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       left: 14,
                       right: 14,
                       bottom: 20,
@@ -67,12 +69,12 @@ class _ActiveState extends State<Active> {
                             color: Colors.grey.withOpacity(0.15),
                             blurRadius: 15,
                             spreadRadius: 2,
-                            offset: Offset(0, 5),
+                            offset: const Offset(0, 5),
                           ),
                         ],
                       ),
                       child: Padding(
-                        padding: EdgeInsets.all(18.0),
+                        padding: const EdgeInsets.all(18.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -98,7 +100,7 @@ class _ActiveState extends State<Active> {
                                     if (profileImageUrl != null && profileImageUrl.startsWith('http')) {
                                       avatarImage = NetworkImage(profileImageUrl);
                                     } else {
-                                      avatarImage = AssetImage("lib/image/logo.png");
+                                      avatarImage = const AssetImage("lib/image/logo.png");
                                     }
 
                                     return CircleAvatar(
@@ -109,7 +111,7 @@ class _ActiveState extends State<Active> {
                                   },
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.only(left: 15),
+                                  padding: const EdgeInsets.only(left: 15),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
@@ -134,7 +136,7 @@ class _ActiveState extends State<Active> {
                                           }
 
                                           return Padding(
-                                            padding: EdgeInsets.only(top: 4),
+                                            padding: const EdgeInsets.only(top: 4),
                                             child: Row(
                                               children: [
                                                 Icon(
@@ -143,7 +145,7 @@ class _ActiveState extends State<Active> {
                                                   size: 15,
                                                 ),
                                                 Padding(
-                                                  padding: EdgeInsets.only(left: 6),
+                                                  padding: const EdgeInsets.only(left: 6),
                                                   child: Text(
                                                     displayName,
                                                     style: TextStyle(
@@ -161,31 +163,35 @@ class _ActiveState extends State<Active> {
                                     ],
                                   ),
                                 ),
-                                Spacer(),
-                                StreamBuilder<DocumentSnapshot>(
-                                  stream: activeViewModel.getLiveBookingStream(jobId),
-                                  builder: (context, bookingSnapshot) {
-                                    var bookingData = bookingSnapshot.data?.data() as Map<String, dynamic>?;
+                                const Spacer(),
+                                // Fetch and display basePrice from the partners collection for the respective partner
+                                FutureBuilder<DocumentSnapshot>(
+                                  future: partnerId != null && partnerId.isNotEmpty
+                                      ? FirebaseFirestore.instance.collection('partners').doc(partnerId).get()
+                                      : Future.value(null),
+                                  builder: (context, partnerSnapshot) {
+                                    String displayPrice = initialPrice;
 
-                                    ActiveJobModel activeJob = ActiveJobModel.fromMaps(
-                                      jobData,
-                                      bookingData,
-                                      jobId,
-                                    );
+                                    if (partnerSnapshot.hasData && partnerSnapshot.data != null && partnerSnapshot.data!.exists) {
+                                      var partnerData = partnerSnapshot.data!.data() as Map<String, dynamic>?;
+                                      if (partnerData != null && partnerData['basePrice'] != null) {
+                                        displayPrice = partnerData['basePrice'].toString();
+                                      }
+                                    }
 
                                     return Padding(
-                                      padding: EdgeInsets.only(bottom: 18.0, left: 7),
+                                      padding: const EdgeInsets.only(bottom: 18.0, left: 7),
                                       child: Container(
-                                        padding: EdgeInsets.symmetric(
+                                        padding: const EdgeInsets.symmetric(
                                           horizontal: 14,
                                           vertical: 8,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Color(0xFFE8F4FF),
+                                          color: const Color(0xFFE8F4FF),
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Text(
-                                          "₹${activeJob.price}",
+                                          "₹$displayPrice",
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w800,
@@ -199,16 +205,16 @@ class _ActiveState extends State<Active> {
                               ],
                             ),
                             Padding(
-                              padding: EdgeInsets.only(left: 3, top: 12),
+                              padding: const EdgeInsets.only(left: 3, top: 12),
                               child: Row(
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     CupertinoIcons.location_fill,
                                     color: Colors.red,
                                     size: 16,
                                   ),
                                   Padding(
-                                    padding: EdgeInsets.only(left: 8),
+                                    padding: const EdgeInsets.only(left: 8),
                                     child: Text(
                                       jobData['location'] ?? '',
                                       style: TextStyle(
@@ -221,19 +227,19 @@ class _ActiveState extends State<Active> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(left: 3, top: 6),
+                              padding: const EdgeInsets.only(left: 3, top: 6),
                               child: Row(
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     CupertinoIcons.time,
                                     color: Colors.black,
                                     size: 16,
                                   ),
                                   Padding(
-                                    padding: EdgeInsets.only(left: 8),
+                                    padding: const EdgeInsets.only(left: 8),
                                     child: Text(
                                       jobData['time'] ?? 'Today',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 14,
                                         color: Colors.blue,
                                       ),
@@ -243,20 +249,20 @@ class _ActiveState extends State<Active> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(top: 12),
+                              padding: const EdgeInsets.only(top: 12),
                               child: Container(
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: Color(0xFFF4F6F9),
+                                  color: const Color(0xFFF4F6F9),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Padding(
-                                  padding: EdgeInsets.only(left: 12),
+                                  padding: const EdgeInsets.only(left: 12),
                                   child: Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
                                       jobData['description'] ?? 'No description provided',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 13,
                                         color: Colors.black,
                                         fontWeight: FontWeight.w800,
@@ -267,7 +273,7 @@ class _ActiveState extends State<Active> {
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.only(top: 12),
+                              padding: const EdgeInsets.only(top: 12),
                               child: Row(
                                 children: [
                                   Expanded(
@@ -286,7 +292,7 @@ class _ActiveState extends State<Active> {
                                           color: Colors.blue[900],
                                           borderRadius: BorderRadius.circular(12),
                                         ),
-                                        child: Center(
+                                        child: const Center(
                                           child: Text(
                                             "TRACK",
                                             style: TextStyle(

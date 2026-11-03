@@ -18,6 +18,14 @@ class HomeViewModel extends ChangeNotifier {
   Stream<DocumentSnapshot> getPartnerProfileStream() {
     return _repository.getPartnerProfile(partnerId);
   }
+  // In HomeViewModel
+  Stream<QuerySnapshot> getCompletedAndCancelledJobsStream() {
+    String partnerId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    return FirebaseFirestore.instance
+        .collection('bookings') // Or 'jobs', depending on where your partner's accepted/completed jobs are stored
+        .where('partnerId', isEqualTo: partnerId)
+        .snapshots();
+  }
 
   Stream<QuerySnapshot> getEarningsStream() {
     return _repository.getEarnings(partnerId);
@@ -30,4 +38,6 @@ class HomeViewModel extends ChangeNotifier {
   Future<DocumentSnapshot> getUserDetails(String userId) async {
     return _repository.getUserDetails(userId);
   }
+
+
 }

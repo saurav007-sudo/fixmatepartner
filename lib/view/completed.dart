@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Make sure firebase_auth is imported
 import 'package:fixmatepartner/view/jobdetail.dart';
+import 'package:fixmatepartner/view/viewcompletedjob.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,26 +17,52 @@ class CompletedPage extends StatefulWidget {
 }
 
 class _CompletedPageState extends State<CompletedPage> {
+  // Helper method to fetch basePrice from partners collection
+  Future<String> _fetchPartnerBasePrice(String? partnerId, String fallbackPrice) async {
+    if (partnerId == null || partnerId.isEmpty) return fallbackPrice;
+    try {
+      // Check 'partners' collection first
+      var doc = await FirebaseFirestore.instance.collection('partners').doc(partnerId).get();
+      if (doc.exists && doc.data()?['basePrice'] != null) {
+        return doc.data()!['basePrice'].toString();
+      }
+
+      // Fallback check 'partner' collection (singular)
+      var docSingular = await FirebaseFirestore.instance.collection('partner').doc(partnerId).get();
+      if (docSingular.exists && docSingular.data()?['basePrice'] != null) {
+        return docSingular.data()!['basePrice'].toString();
+      }
+    } catch (e) {
+      debugPrint("Error fetching partner base price: $e");
+    }
+    return fallbackPrice;
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Get the current logged-in professional's ID
+    String currentPartnerId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
     return Consumer<ActiveViewModel>(
       builder: (context, activeViewModel, child) {
         return Scaffold(
-          backgroundColor: Color(0xFFEFF9FF),
+          backgroundColor: const Color(0xFFEFF9FF),
           body: SizedBox(
             height: 800,
             width: 360,
             child: StreamBuilder<QuerySnapshot>(
+              // Filtered by current partnerId and status completed/closed
               stream: FirebaseFirestore.instance
                   .collection('bookings')
+                  .where('partnerId', isEqualTo: currentPartnerId)
                   .where('status', whereIn: ['completed', 'closed'])
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(
+                  return const Center(
                     child: Text(
                       "No completed jobs found",
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey),
@@ -45,18 +73,20 @@ class _CompletedPageState extends State<CompletedPage> {
                 var jobDocs = snapshot.data!.docs;
 
                 return ListView.builder(
-                  padding: EdgeInsets.only(top: 8, bottom: 20),
+                  padding: const EdgeInsets.only(top: 8, bottom: 20),
                   itemCount: jobDocs.length,
                   itemBuilder: (context, index) {
                     var jobData = jobDocs[index].data() as Map<String, dynamic>;
                     String jobId = jobDocs[index].id;
 
                     String? customerUserId = jobData['userId'] ?? jobData['customerId'];
+                    String? partnerId = jobData['partnerId'] ?? currentPartnerId;
                     String initialCustomerName = jobData['customerName'] ?? 'Customer';
+                    String initialPrice = jobData['basePrice']?.toString() ?? jobData['price']?.toString() ?? '0';
                     String? initialProfileImage = jobData['profileImage'] ?? jobData['image'] ?? jobData['imageUrl'];
 
                     return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       child: Container(
                         height: 210,
                         width: 340,
@@ -69,12 +99,12 @@ class _CompletedPageState extends State<CompletedPage> {
                               color: Colors.grey.withOpacity(0.2),
                               blurRadius: 8,
                               spreadRadius: 1,
-                              offset: Offset(0, 3),
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
                         child: Padding(
-                          padding: EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -100,7 +130,7 @@ class _CompletedPageState extends State<CompletedPage> {
                                       if (profileImageUrl != null && profileImageUrl.startsWith('http')) {
                                         avatarImage = NetworkImage(profileImageUrl);
                                       } else {
-                                        avatarImage = AssetImage("lib/image/logo.png");
+                                        avatarImage = const AssetImage("lib/image/logo.png");
                                       }
 
                                       return Container(
@@ -118,7 +148,7 @@ class _CompletedPageState extends State<CompletedPage> {
                                     },
                                   ),
                                   Padding(
-                                    padding: EdgeInsets.only(left: 10),
+                                    padding: const EdgeInsets.only(left: 10),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
@@ -143,12 +173,12 @@ class _CompletedPageState extends State<CompletedPage> {
                                             }
 
                                             return Padding(
-                                              padding: EdgeInsets.only(top: 2),
+                                              padding: const EdgeInsets.only(top: 2),
                                               child: Row(
                                                 children: [
-                                                  Icon(CupertinoIcons.person, size: 12, color: Colors.grey),
+                                                  const Icon(CupertinoIcons.person, size: 12, color: Colors.grey),
                                                   Padding(
-                                                    padding: EdgeInsets.only(left: 4),
+                                                    padding: const EdgeInsets.only(left: 4),
                                                     child: Text(
                                                       displayName,
                                                       style: TextStyle(
@@ -166,37 +196,45 @@ class _CompletedPageState extends State<CompletedPage> {
                                       ],
                                     ),
                                   ),
-                                  Spacer(),
-                                  Container(
-                                    height: 28,
-                                    padding: EdgeInsets.symmetric(horizontal: 10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.shade50,
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "₹${jobData['basePrice'] ?? jobData['price'] ?? '0'}",
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.green.shade800,
+                                  const Spacer(),
+                                  // Fetch and display basePrice dynamically from partners collection
+                                  FutureBuilder<String>(
+                                    future: _fetchPartnerBasePrice(partnerId, initialPrice),
+                                    builder: (context, priceSnapshot) {
+                                      String displayPrice = priceSnapshot.data ?? initialPrice;
+
+                                      return Container(
+                                        height: 28,
+                                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade50,
+                                          borderRadius: BorderRadius.circular(14),
                                         ),
-                                      ),
-                                    ),
+                                        child: Center(
+                                          child: Text(
+                                            "₹$displayPrice",
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.green.shade800,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
                               Padding(
-                                padding: EdgeInsets.only(top: 10),
+                                padding: const EdgeInsets.only(top: 10),
                                 child: Row(
                                   children: [
-                                    Icon(CupertinoIcons.location_solid, size: 13, color: Colors.red),
+                                    const Icon(CupertinoIcons.location_solid, size: 13, color: Colors.red),
                                     Padding(
-                                      padding: EdgeInsets.only(left: 4),
+                                      padding: const EdgeInsets.only(left: 4),
                                       child: Text(
                                         jobData['location'] ?? '',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 12,
                                           color: Colors.black87,
                                           fontWeight: FontWeight.w600,
@@ -207,15 +245,15 @@ class _CompletedPageState extends State<CompletedPage> {
                                 ),
                               ),
                               Padding(
-                                padding: EdgeInsets.only(top: 4),
+                                padding: const EdgeInsets.only(top: 4),
                                 child: Row(
                                   children: [
-                                    Icon(CupertinoIcons.time, size: 13, color: Colors.grey),
+                                    const Icon(CupertinoIcons.time, size: 13, color: Colors.grey),
                                     Padding(
-                                      padding: EdgeInsets.only(left: 4),
+                                      padding: const EdgeInsets.only(left: 4),
                                       child: Text(
                                         jobData['date'] ?? jobData['time'] ?? 'Completed',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 12,
                                           color: Colors.green,
                                           fontWeight: FontWeight.w700,
@@ -226,7 +264,7 @@ class _CompletedPageState extends State<CompletedPage> {
                                 ),
                               ),
                               Padding(
-                                padding: EdgeInsets.only(top: 8),
+                                padding: const EdgeInsets.only(top: 8),
                                 child: Container(
                                   height: 32,
                                   width: 320,
@@ -235,12 +273,12 @@ class _CompletedPageState extends State<CompletedPage> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 10),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10),
                                     child: Align(
                                       alignment: Alignment.centerLeft,
                                       child: Text(
                                         jobData['description'] ?? 'No description provided',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 12,
                                           color: Colors.black87,
                                           fontWeight: FontWeight.w600,
@@ -251,13 +289,13 @@ class _CompletedPageState extends State<CompletedPage> {
                                 ),
                               ),
                               Padding(
-                                padding: EdgeInsets.only(top: 10),
+                                padding: const EdgeInsets.only(top: 10),
                                 child: GestureDetector(
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => JobDetailsPage(jobId: jobId),
+                                        builder: (context) => CompletedDetailsPage(jobId: jobId),
                                       ),
                                     );
                                   },
@@ -268,7 +306,7 @@ class _CompletedPageState extends State<CompletedPage> {
                                       color: Colors.green.shade700,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: Center(
+                                    child: const Center(
                                       child: Text(
                                         "VIEW DETAILS",
                                         style: TextStyle(

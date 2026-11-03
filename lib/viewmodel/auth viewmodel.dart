@@ -22,7 +22,6 @@ class AuthViewModel with ChangeNotifier {
     "Plumbing",
     "AC Service",
     "Cleaning",
-    "Pest Control",
     "Painting"
   ];
 
